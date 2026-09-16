@@ -5,23 +5,37 @@ import com.example.demo.helpdesk.dto.UserResponse;
 import com.example.demo.helpdesk.entity.User;
 import com.example.demo.helpdesk.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import com.example.demo.helpdesk.exception.EmailAlreadyExistsException;
+import com.example.demo.helpdesk.dto.LoginRequest;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import com.example.demo.helpdesk.exception.InvalidCredentialsException;
+import com.example.demo.helpdesk.service.JwtService;
+import com.example.demo.helpdesk.dto.LoginResponse;
+
+import java.util.Optional;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
+        this.passwordEncoder=passwordEncoder;
+        this.jwtService = jwtService;
     }
 
+
     public UserResponse registerUser(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyExistsException("Email already registered");        }
         User user = new User();
 
         user.setName(request.getName());
         user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword());
-        user.setRole("CUSTOMER");
+        user.setPassword(passwordEncoder.encode(request.getPassword()));        user.setRole("CUSTOMER");
         User savedUser = userRepository.save(user);
 
         return new UserResponse(
@@ -30,5 +44,31 @@ public class UserService {
                 savedUser.getEmail(),
                 savedUser.getRole()
         );
+    }
+    public LoginResponse loginUser(LoginRequest request) {
+
+        Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
+
+        if (userOptional.isEmpty()) {
+            throw new InvalidCredentialsException("Invalid email or password");
+        }
+
+        User user = userOptional.get();
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Invalid email or password");
+        }
+
+        UserResponse userResponse = new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole()
+        );
+
+        String token = jwtService.generateToken(user);
+
+        return new LoginResponse(token, userResponse);
+
     }
 }

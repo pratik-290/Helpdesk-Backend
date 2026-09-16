@@ -1,13 +1,13 @@
 package com.example.demo.helpdesk.controller;
 
+import com.example.demo.helpdesk.dto.LoginRequest;
 import com.example.demo.helpdesk.dto.RegisterRequest;
 import com.example.demo.helpdesk.dto.UserResponse;
 import com.example.demo.helpdesk.service.UserService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import com.example.demo.helpdesk.dto.LoginResponse;
+
 
 @RestController
 @RequestMapping("/api/users")
@@ -22,5 +22,15 @@ public class UserController {
     @PostMapping
     public UserResponse registerUser(@Valid @RequestBody RegisterRequest request) {
         return userService.registerUser(request);
+    }
+
+    @GetMapping("/profile")
+    public String profile() {
+        return "You are authenticated";
+    }
+
+    @PostMapping("/login")
+    public LoginResponse loginUser(@RequestBody LoginRequest request) {
+        return userService.loginUser(request);
     }
 }
