@@ -74,4 +74,17 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(
+            RuntimeException ex) {
+
+        ErrorResponse response = new ErrorResponse(
+                400,
+                ex.getMessage(),
+                null
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
 }

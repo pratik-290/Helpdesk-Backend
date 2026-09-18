@@ -47,4 +47,15 @@ public class TicketController {
         return ticketService.getTicketById(id, email);
     }
 
+    @PatchMapping("/{id}/close")
+    public TicketResponse closeTicket(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        return ticketService.closeTicket(
+                id,
+                authentication.getName()
+        );
+    }
+
 }
